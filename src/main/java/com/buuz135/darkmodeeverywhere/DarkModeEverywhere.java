@@ -1,28 +1,20 @@
 package com.buuz135.darkmodeeverywhere;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.IExtensionPoint;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
+import net.fabricmc.api.ModInitializer;
+import net.minecraftforge.api.ModLoadingContext;
+import net.minecraftforge.api.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod("darkmodeeverywhere")
-public class DarkModeEverywhere {
+public class DarkModeEverywhere implements ModInitializer {
 
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger();
 
-    public DarkModeEverywhere() {
-        ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> "ANY", (remote, isServer) -> true));
-        if (FMLEnvironment.dist == Dist.CLIENT){
-            new ClientProxy();
-        }
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, DarkConfig.CLIENT.SPEC);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(DarkConfig.CLIENT::onConfigReload);
+    public void onInitialize() {
+        ModLoadingContext.registerConfig("darkmodeeverywhere", ModConfig.Type.CLIENT, DarkConfig.CLIENT.SPEC);
+        ModConfigEvent.RELOADING.register(DarkConfig.CLIENT::onConfigReload);
     }
 
 }

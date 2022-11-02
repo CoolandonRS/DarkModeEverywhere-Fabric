@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "darkmodeeverywhere",
+  "version": "${version}",
+  "name": "DarkModeEverywhere",
+  "description": "Dark Mode GUIs Everywhere",
+  "authors": [
+    "Buuz135",
+    "AlphaMode"
+  ],
+  "entrypoints": {
+    "main": [
+      "com.buuz135.darkmodeeverywhere.DarkModeEverywhere"
+    ],
+    "client": [
+      "com.buuz135.darkmodeeverywhere.ClientProxy"
+    ]
+  },
+  "mixins": [
+    "darkmodeeverywhere.mixins.json"
+  ]
+}

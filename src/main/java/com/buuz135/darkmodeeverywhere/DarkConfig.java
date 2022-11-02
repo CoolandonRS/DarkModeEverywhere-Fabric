@@ -2,7 +2,6 @@ package com.buuz135.darkmodeeverywhere;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 public class DarkConfig {
 
@@ -11,7 +10,7 @@ public class DarkConfig {
     private static abstract class ConfigClass {
         public ForgeConfigSpec SPEC;
 
-        public abstract void onConfigReload(ModConfigEvent.Reloading event);
+        public abstract void onConfigReload(ModConfig config);
     }
 
     public static class Client extends ConfigClass {
@@ -41,9 +40,9 @@ public class DarkConfig {
         }
 
         @Override
-        public void onConfigReload(ModConfigEvent.Reloading event) {
-            if (event.getConfig().getType() == ModConfig.Type.COMMON) {
-                SPEC.setConfig(event.getConfig().getConfigData());
+        public void onConfigReload(ModConfig config) {
+            if (config.getType() == ModConfig.Type.COMMON) {
+                SPEC.setConfig(config.getConfigData());
             }
         }
     }
