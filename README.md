@@ -2,7 +2,7 @@
 
 Unofficial Fabric port of DarkModeEverywhere[^1]. It will be as maintained as I have time (and willpower) for.
 
-I've kept the upstream branches as `ver-forge` instead of `ver`, which will now be fabric release for ease of development.
+I've kept the upstream branches as `ver-forge` when there isn't a fabric port of that version yet for ease of development.
 I'll try to keep the `main` branch just a clone of the most recent version.
 
 
