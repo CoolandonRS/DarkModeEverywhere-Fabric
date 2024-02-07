@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.util.FastColor;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
@@ -25,14 +26,15 @@ public class FontMixin {
         return modifyColor(color);
     }
 
+    @Unique
     private int modifyColor(int color){
         if (color == 0) return color;
-        if (ClientProxy.SELECTED_SHADER != null && Minecraft.getInstance().screen != null) {
-            int thre = 65;
-            ShaderConfig.Value value = ClientProxy.SHADER_VALUES.get(ClientProxy.SELECTED_SHADER);
-            if (value.darkColorReplacement == -1) return color;
-            if (FastColor.ARGB32.red(color) < thre && FastColor.ARGB32.green(color)  < thre && FastColor.ARGB32.blue(color)  < thre){
-                return value.darkColorReplacement;
+        if (ClientProxy.SELECTED_SHADER_VALUE != null && Minecraft.getInstance().screen != null) {
+            int threshold = 65;
+            ShaderConfig.ShaderValue shaderValue = ClientProxy.SELECTED_SHADER_VALUE;
+            if (shaderValue.darkColorReplacement == -1) return color;
+            if (FastColor.ARGB32.red(color) < threshold && FastColor.ARGB32.green(color) < threshold && FastColor.ARGB32.blue(color) < threshold){
+                return shaderValue.darkColorReplacement;
             }
         }
         return color;
