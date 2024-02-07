@@ -56,7 +56,7 @@ public class ShaderConfig {
             ClientProxy.CONFIG = gson.fromJson(reader, ShaderConfig.class);
             reader.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            DarkModeEverywhere.LOGGER.trace(e);
             createDefault(file);
         }
     }
@@ -68,18 +68,18 @@ public class ShaderConfig {
             gson.toJson(ClientProxy.CONFIG, fileWriter);
             fileWriter.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            DarkModeEverywhere.LOGGER.trace(e);
         }
     }
 
     public class Value{
 
-        public String resourceLocation;
+        public ResourceLocation resourceLocation;
         public String displayName;
         public int darkColorReplacement;
 
         public Value(ResourceLocation resourceLocation, String displayName, int darkColorReplacement) {
-            this.resourceLocation = resourceLocation.toString();
+            this.resourceLocation = resourceLocation;
             this.displayName = displayName;
             this.darkColorReplacement = darkColorReplacement;
         }
