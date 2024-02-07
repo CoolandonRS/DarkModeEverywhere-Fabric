@@ -2,7 +2,9 @@ package com.buuz135.darkmodeeverywhere;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 
 import java.io.File;
 import java.io.FileReader;
@@ -13,74 +15,82 @@ import java.util.List;
 
 public class ShaderConfig {
 
-    private List<Value> shaders;
-    private int version;
-    private String selectedShader;
+    private final List<ShaderValue> shaders;
+    private final int version;
+    private int selectedShaderIndex;
+    private static final File configFilePath = new File("config" + File.separator + "darkmodeeverywhereshaders.json");
 
     public ShaderConfig() {
         this.shaders = new ArrayList<>();
-        this.version = 1;
-        this.shaders.add(new Value(new ResourceLocation("darkmodeeverywhere", "perfect_dark"), "Perfect Dark", 16777215));
-        this.shaders.add(new Value(new ResourceLocation("darkmodeeverywhere", "less_perfect_dark"), "Less Perfect Dark", 16777215));
-        this.shaders.add(new Value(new ResourceLocation("darkmodeeverywhere", "toasted_light"), "Toasted Light Mode", 16777215));
-        this.selectedShader = null;
+        this.version = 2;
+        ResourceLocation tex_shader_location = new ResourceLocation("darkmodeeverywhere", "dark_position_tex");
+        ResourceLocation tex_color_shader_location = new ResourceLocation("darkmodeeverywhere", "dark_position_tex_color");
+        this.shaders.add(null);
+        this.shaders.add(new ShaderValue(tex_shader_location, tex_color_shader_location, Component.translatable("gui.darkmodeeverywhere.perfect_dark"), (float)5.5, 16777215));
+        this.shaders.add(new ShaderValue(tex_shader_location, tex_color_shader_location, Component.translatable("gui.darkmodeeverywhere.less_perfect_dark"), (float)3.5, 16777215));
+        this.shaders.add(new ShaderValue(tex_shader_location, tex_color_shader_location, Component.translatable("gui.darkmodeeverywhere.toasted_light"), (float)2, 16777215));
+        this.selectedShaderIndex = 0;
     }
 
-    public List<Value> getShaders() {
+    public List<ShaderValue> getShaders() {
         return shaders;
     }
 
-    public void setSelectedShader(ResourceLocation resourceLocation){
-        if (resourceLocation == null){
-            selectedShader = null;
-        } else {
-            selectedShader = resourceLocation.toString();
-        }
-        new Thread(() -> {
-            createDefault(new File("config" + File.separator + "darkmodeeverywhereshaders.json"));
-        }).start();
+    public void setSelectedShaderIndex(int index) {
+        selectedShaderIndex = index;
+        DarkModeEverywhere.LOGGER.debug("Selected shader index updated to {}", selectedShaderIndex);
+        new Thread(ShaderConfig::createDefaultConfigFile).start();
     }
 
-    public String getSelectedShader() {
-        return selectedShader;
+    public int getSelectedShaderIndex() {
+        return selectedShaderIndex;
+    }
+
+    private static Gson createGson() {
+        return new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(MutableComponent.class, new Component.SerializerAdapter())
+                .create();
     }
 
     public static void load(){
-        File file = new File("config" + File.separator + "darkmodeeverywhereshaders.json");
-        if (!file.exists()){
-            createDefault(file);
+        if (!configFilePath.exists()){
+            createDefaultConfigFile();
         }
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try {
-            FileReader reader = new FileReader(file);
+        Gson gson = createGson();
+        try (FileReader reader = new FileReader(configFilePath)) {
             ClientProxy.CONFIG = gson.fromJson(reader, ShaderConfig.class);
-            reader.close();
+            if (ClientProxy.CONFIG.version != new ShaderConfig().version) {
+                throw new Exception("Invalid config version.");
+            }
         } catch (Exception e) {
             DarkModeEverywhere.LOGGER.trace(e);
-            createDefault(file);
+            ClientProxy.CONFIG = new ShaderConfig();
+            createDefaultConfigFile();
         }
     }
 
-    private static void createDefault(File file){
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try {
-            FileWriter fileWriter = new FileWriter(file);
+    private static void createDefaultConfigFile(){
+        Gson gson = createGson();
+        try (FileWriter fileWriter = new FileWriter(ShaderConfig.configFilePath)) {
             gson.toJson(ClientProxy.CONFIG, fileWriter);
-            fileWriter.close();
         } catch (IOException e) {
             DarkModeEverywhere.LOGGER.trace(e);
         }
     }
 
-    public class Value{
-
-        public ResourceLocation resourceLocation;
-        public String displayName;
+    public static class ShaderValue {
+        public ResourceLocation texShaderLocation;
+        public ResourceLocation texColorShaderLocation;
+        public MutableComponent displayName;
+        public float divideFactor;
         public int darkColorReplacement;
 
-        public Value(ResourceLocation resourceLocation, String displayName, int darkColorReplacement) {
-            this.resourceLocation = resourceLocation;
+        public ShaderValue(ResourceLocation texShaderLocation, ResourceLocation texColorShaderLocation, MutableComponent displayName, float divideFactor, int darkColorReplacement) {
+            this.texShaderLocation = texShaderLocation;
+            this.texColorShaderLocation = texColorShaderLocation;
             this.displayName = displayName;
+            this.divideFactor = divideFactor;
             this.darkColorReplacement = darkColorReplacement;
         }
     }

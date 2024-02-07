@@ -1,35 +1,52 @@
 package com.buuz135.darkmodeeverywhere.mixins;
 
+import com.buuz135.darkmodeeverywhere.ClassUtil;
 import com.buuz135.darkmodeeverywhere.ClientProxy;
-import com.buuz135.darkmodeeverywhere.DarkModeEverywhere;
-import com.buuz135.darkmodeeverywhere.ShaderConfig;
-import com.mojang.blaze3d.shaders.Program;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.ResourceProvider;
+
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @Mixin(GameRenderer.class)
-public class GameRenderMixin {
+public abstract class GameRenderMixin {
+
+    @Unique
+    private static void darkModeEverywhere$replaceDefaultShader(CallbackInfoReturnable<ShaderInstance> cir, Supplier<ShaderInstance> replacer) {
+        ShaderInstance replacement = replacer.get();
+        if (replacement == null) return;
+        cir.setReturnValue(replacer.get());
+    }
+
+    @Unique
+    private static void darkModeEverywhere$replaceDefaultShaderWhenAppropriate(CallbackInfoReturnable<ShaderInstance> cir, Supplier<ShaderInstance> replacer) {
+        if (ClientProxy.SELECTED_SHADER_VALUE == null) return;
+
+        var callerClassName = ClassUtil.getCallerClassName();
+        if (callerClassName == null) {
+            darkModeEverywhere$replaceDefaultShader(cir, replacer);
+            return;
+        }
+
+        boolean elementNameIsBlacklisted = ClientProxy.isElementNameBlacklisted(callerClassName);
+
+        if (!elementNameIsBlacklisted) {
+            darkModeEverywhere$replaceDefaultShader(cir, replacer);
+        }
+    }
+
     @Inject(method = "getPositionTexShader", at = @At("HEAD"), cancellable = true)
     private static void getPositionTexShader(CallbackInfoReturnable<ShaderInstance> cir) {
-        if (ClientProxy.SELECTED_SHADER != null){
-            cir.setReturnValue(ClientProxy.REGISTERED_SHADERS.get(ClientProxy.SELECTED_SHADER));
-        }
+        darkModeEverywhere$replaceDefaultShaderWhenAppropriate(cir, ClientProxy::getSelectedTexShader);
+    }
+
+    @Inject(method = "getPositionTexColorShader", at = @At("HEAD"), cancellable = true)
+    private static void getPositionTexColorShader(CallbackInfoReturnable<ShaderInstance> cir) {
+        darkModeEverywhere$replaceDefaultShaderWhenAppropriate(cir, ClientProxy::getSelectedTexColorShader);
     }
 }

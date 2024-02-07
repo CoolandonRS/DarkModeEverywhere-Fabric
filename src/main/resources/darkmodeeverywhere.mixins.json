@@ -10,7 +10,9 @@
     "FabricShaderProgramMixin",
     "FontMixin",
     "GameRenderMixin",
-    "ShaderInstanceMixin"
+    "ShaderInstanceMixin",
+    "GameRenderMixin",
+    "VertexBufferMixin"
   ],
   "injectors": {
     "defaultRequire": 1
